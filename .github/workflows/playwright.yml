@@ -5,6 +5,28 @@ on:
     branches: [main, master]
   pull_request:
     branches: [main, master]
+  workflow_dispatch:
+    inputs:
+      browser:
+        description: 'Browser to run tests on'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - chromium
+          - firefox
+          - webkit
+      test_file:
+        description: 'Test file to run (leave empty to run all tests)'
+        required: false
+        default: ''
+        type: string
+      headed:
+        description: 'Run in headed mode'
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   test:
@@ -29,7 +51,26 @@ jobs:
         run: npx playwright install --with-deps
 
       - name: Run Playwright tests
-        run: npx playwright test
+        run: |
+          ARGS=""
+
+          # Browser selection
+          if [ "${{ github.event.inputs.browser }}" != "all" ] && [ -n "${{ github.event.inputs.browser }}" ]; then
+            ARGS="$ARGS --project=${{ github.event.inputs.browser }}"
+          fi
+
+          # Specific test file
+          if [ -n "${{ github.event.inputs.test_file }}" ]; then
+            ARGS="$ARGS ${{ github.event.inputs.test_file }}"
+          fi
+
+          # Headed mode (only works with xvfb on Linux)
+          if [ "${{ github.event.inputs.headed }}" == "true" ]; then
+            ARGS="$ARGS --headed"
+            npx xvfb-maybe npx playwright test $ARGS
+          else
+            npx playwright test $ARGS
+          fi
 
       - name: Upload test report
         uses: actions/upload-artifact@v4
