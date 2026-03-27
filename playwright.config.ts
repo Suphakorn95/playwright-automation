@@ -30,6 +30,29 @@ export default defineConfig({
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
+
+    /* Use real Chrome to reduce bot detection / CAPTCHA triggers */
+    channel: 'chrome',
+
+    /* Longer timeout to allow for slow ad/captcha redirects */
+    actionTimeout: 15000,
+    navigationTimeout: 30000,
+
+    /* Set to false to see the browser UI (recommended for debugging/captcha) */
+    headless: true,
+
+    launchOptions: {
+      args: [
+        '--disable-blink-features=AutomationControlled', // hides webdriver flag
+        '--disable-extensions',
+        '--no-sandbox',
+        '--disable-popup-blocking',    // allow popups (ads) to open so they don't stall navigation
+      ],
+    },
+
+    /* Appear more like a real user */
+    userAgent:
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
   },
 
   /* Configure projects for major browsers */
@@ -37,17 +60,17 @@ export default defineConfig({
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
-    },
+    }
 
-    {
-      name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
-    },
+    // {
+    //   name: 'firefox',
+    //   use: { ...devices['Desktop Firefox'] },
+    // },
 
-    {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
-    },
+    // {
+    //   name: 'webkit',
+    //   use: { ...devices['Desktop Safari'] },
+    // },
 
     /* Test against mobile viewports. */
     // {
