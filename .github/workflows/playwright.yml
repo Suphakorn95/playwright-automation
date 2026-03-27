@@ -51,8 +51,11 @@ jobs:
         run: npx playwright install --with-deps
 
       - name: Run Playwright tests
+        id: run_tests
+        env:
+          PLAYWRIGHT_JSON_OUTPUT_NAME: results.json
         run: |
-          ARGS=""
+          ARGS="--reporter=html,github,json"
 
           # Browser selection
           if [ "${{ github.event.inputs.browser }}" != "all" ] && [ -n "${{ github.event.inputs.browser }}" ]; then
@@ -70,6 +73,48 @@ jobs:
             npx xvfb-maybe npx playwright test $ARGS
           else
             npx playwright test $ARGS
+          fi
+
+      - name: Display test results summary
+        if: always()
+        run: |
+          if [ -f results.json ]; then
+            echo "## Playwright Test Results" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+
+            TOTAL=$(node -e "const r=require('./results.json'); console.log(r.stats.expected + r.stats.unexpected + r.stats.skipped)")
+            PASSED=$(node -e "const r=require('./results.json'); console.log(r.stats.expected)")
+            FAILED=$(node -e "const r=require('./results.json'); console.log(r.stats.unexpected)")
+            SKIPPED=$(node -e "const r=require('./results.json'); console.log(r.stats.skipped)")
+            DURATION=$(node -e "const r=require('./results.json'); console.log((r.stats.duration/1000).toFixed(1))")
+
+            echo "| Result | Count |" >> $GITHUB_STEP_SUMMARY
+            echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+            echo "| ✅ Passed | $PASSED |" >> $GITHUB_STEP_SUMMARY
+            echo "| ❌ Failed | $FAILED |" >> $GITHUB_STEP_SUMMARY
+            echo "| ⏭️ Skipped | $SKIPPED |" >> $GITHUB_STEP_SUMMARY
+            echo "| 🔢 Total | $TOTAL |" >> $GITHUB_STEP_SUMMARY
+            echo "| ⏱️ Duration | ${DURATION}s |" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+
+            if [ "$FAILED" -gt "0" ]; then
+              echo "### ❌ Failed Tests" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              node -e "
+                const r = require('./results.json');
+                r.suites.forEach(suite => {
+                  suite.suites && suite.suites.forEach(s => {
+                    s.specs && s.specs.forEach(spec => {
+                      spec.tests && spec.tests.forEach(test => {
+                        if (test.status !== 'expected') {
+                          console.log('- \`' + spec.title + '\` — ' + suite.title);
+                        }
+                      });
+                    });
+                  });
+                });
+              " >> $GITHUB_STEP_SUMMARY
+            fi
           fi
 
       - name: Upload test report

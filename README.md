@@ -117,10 +117,41 @@ npx playwright show-report
 
 ---
 
+## GitHub Actions CI
+
+A workflow is already configured at [.github/workflows/playwright.yml](.github/workflows/playwright.yml).
+
+**It runs automatically on:**
+- Every push to `main` or `master`
+- Every pull request targeting `main` or `master`
+
+**What the workflow does:**
+1. Checks out the code
+2. Sets up Node.js 22
+3. Installs dependencies via `npm ci`
+4. Installs Playwright browsers (`--with-deps` includes OS-level dependencies)
+5. Runs all Playwright tests
+6. Uploads the HTML report as a downloadable artifact (kept for 30 days)
+
+**To view test results after a run:**
+1. Go to your repository on GitHub
+2. Click **Actions** tab
+3. Select a workflow run
+4. Download the `playwright-report` artifact at the bottom of the page
+
+**To trigger a run manually:**
+
+Add `workflow_dispatch` to the workflow trigger, or push any commit to `main`.
+
+---
+
 ## Project Structure
 
 ```
 playwright-automation/
+├── .github/
+│   └── workflows/
+│       └── playwright.yml  # GitHub Actions CI workflow
 ├── tests/                  # Test files (.spec.ts)
 │   └── example.spec.ts
 ├── playwright.config.ts    # Playwright configuration
