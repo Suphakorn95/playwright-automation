@@ -1,0 +1,22 @@
+{
+  "name": "playwright-automation",
+  "version": "1.0.0",
+  "description": "playwright-automation-testing",
+  "main": "index.js",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Suphakorn95/playwright-automation.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Suphakorn95/playwright-automation/issues"
+  },
+  "homepage": "https://github.com/Suphakorn95/playwright-automation#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.58.2",
+    "@types/node": "^25.5.0"
+  }
+}
